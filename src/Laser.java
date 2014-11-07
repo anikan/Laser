@@ -1,3 +1,7 @@
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 
 public class Laser extends Weapon
 {
@@ -23,6 +27,7 @@ public class Laser extends Weapon
     
     //The angle the front of the laser is heading.
     double angle;
+    int faction; //Decides color and damaging capability.
     
     public Laser()
     {
@@ -51,11 +56,13 @@ public class Laser extends Weapon
         
         //Starting from center of list. Binary searching to check only viable walls.
         int searchIndex = MainGame.wallList.size()/2;
+        ArrayList<Wall> checkList = new ArrayList<Wall>();
+        
         //Binary search to speed things up.
         while (searching)
         {
             
-            if (startX > MainGame.wallList.get(searchIndex))
+            if (startX > MainGame.wallList.get(searchIndex).endX)
             {
                 
             }
@@ -73,29 +80,59 @@ public class Laser extends Weapon
         }
     }
     
-    //Recursively looking for possibilities
-    public Wall wallSearch(int firstIndex, int lastIndex)
+    //Recursively looking for possibilities via binary search. TempWallList is a copy of the actual wallList
+    public ArrayList<Wall> wallSearch(int firstIndex, int lastIndex, ArrayList<Wall> returnList, ArrayList<Wall> tempWallList)
     {
         if (firstIndex == lastIndex)
         {
-            return null;
+            return returnList;
         }
         
         else
         {
+            //Getting median entry in this part of the sorted list. If this wall's furthest right point is less than the x of the laser, then the possible wall cannot be further left; only need to check further right.
+            if (startX > tempWallList.get((lastIndex + firstIndex )/ 2).endX)
+            {
+                return wallSearch((lastIndex + firstIndex )/ 2, lastIndex, returnList, tempWallList);
+            }
             
+            //Similar concept to the previous lines, if the furthest left part of the wall is still too far, it has to be in the lower part of the arraylist.
+            else if (startX < tempWallList.get((lastIndex + firstIndex )/ 2).startX)
+            {
+                return wallSearch(firstIndex, (lastIndex + firstIndex )/ 2, returnList, tempWallList);
+            }
+            
+            //Repeating with y components.
+            //Getting median entry in this part of the sorted list. If this wall's furthest down point is less than the y of the laser, then the possible wall cannot be further up; only need to check further down.
+            else if (startY > tempWallList.get((lastIndex + firstIndex )/ 2).endY)
+            {
+                return wallSearch((lastIndex + firstIndex )/ 2, lastIndex, returnList, tempWallList);
+            }
+                
+            //Similar concept to the previous lines, if the furthest up part of the wall is still too far, it has to be in the lower part of the arraylist.
+            else if (startY < MainGame.wallList.get((lastIndex + firstIndex )/ 2).startY)
+            {
+                return wallSearch(firstIndex, (lastIndex + firstIndex )/ 2, returnList, tempWallList);
+            }
+            
+            else
+            {
+                returnList.add(MainGame.wallList.get((lastIndex + firstIndex ) / 2));
+                tempWallList.remove((lastIndex + firstIndex ) / 2);
+                return wallSearch(firstIndex, (lastIndex + firstIndex )/ 2, returnList, tempWallList);
+            }
         }
     }
     
     
     public boolean checkCollisionCharacter(Character character)
     {
-        if (startX > character.xPos && startX > character.xPos + character.xLength && startY > character.yPos && startY > character.yPos + character.yLength)
+        if (startX > character.xPos && startX > character.xPos + character.xLength && startY > character.yPos && startY > character.yPos + character.yLength && this.faction != character.faction)
         {
             
             character.Health -= damage;
             //Destroy laser and remove fom list.
-            MainGame.laserList.remove(this);
+            MainGame.weaponList.remove(this);
             return true;
         }
         
@@ -144,6 +181,33 @@ public class Laser extends Weapon
         else
         {
             return false;
+        }
+    }
+
+    public BufferedImage getProjectileImage() {
+        if (faction == 0)
+        {
+            return MainGame.laserRed;
+        }
+        
+        else if (faction == 1)
+        {
+            return MainGame.laserBlue;
+        }
+        
+        else if (faction == 2)
+        {
+            return MainGame.laserGreen;
+        }
+        
+        else if (faction == 3)
+        {
+            return MainGame.laserYellow;
+        }
+        
+        else
+        {
+            return null;
         }
     }
 }

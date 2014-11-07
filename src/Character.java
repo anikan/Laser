@@ -5,7 +5,8 @@ import java.util.ArrayList;
 public class Character
 {
     int Health; //Have this to not die
-    int xPos;
+    //Top left corner of box
+    int xPos; 
     int yPos;
     
     //Variables to keep track of hitbox of character.
@@ -14,8 +15,9 @@ public class Character
     int faction; //Will support mutliple factions, 0 is player, 1 is first enemy.
     ArrayList<Weapon> wepList = new ArrayList<Weapon>();
     
-    public Character()
+    public Character(int faction, boolean isHuman)
     {
+        this.faction = faction;
         
     }
     
@@ -29,5 +31,4 @@ public class Character
         
         return MainGame.playerImage;
     }
-    
 }
